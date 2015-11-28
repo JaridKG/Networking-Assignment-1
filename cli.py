@@ -3,8 +3,22 @@ __author__ = 'BrendonH'
 import sys
 import socket
 
+#from ephemeral.py, not entirely sure how to use it yet
+def getEphemeralPort():
+    # Create a socket
+    welcomeSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-def put(serverAddr, serverPort, fileName):  #this works for now but will need to work with a seperate connection
+    # Bind the socket to port 0
+    welcomeSocket.bind(('',0))
+
+    # Retreive the ephemeral port number
+    print("I chose ephemeral port: ", welcomeSocket.getsockname()[1])
+
+    return welcomeSocket
+
+
+
+def put(dataSock, fileName):
     #need to check if file name is valid
 
     # The name of the file
@@ -13,11 +27,7 @@ def put(serverAddr, serverPort, fileName):  #this works for now but will need to
     # Open the file
     fileObj = open(fileName, "r")
 
-    # Create a TCP socket
-    connSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # Connect to the server
-    connSock.connect((serverAddr, serverPort))
 
     # The number of bytes sent
     numSent = 0
@@ -54,7 +64,7 @@ def put(serverAddr, serverPort, fileName):  #this works for now but will need to
 
             # Send the data!
             while len(fileData) > numSent:
-                numSent += connSock.send(fileData[numSent:].encode('ascii'))
+                numSent += dataSock.send(fileData[numSent:].encode('ascii'))    #this is where it breaks right now
 
         # The file has been read. We are done
         else:
@@ -64,8 +74,17 @@ def put(serverAddr, serverPort, fileName):  #this works for now but will need to
     print("Sent ", numSent, " bytes.")
 
     # Close the socket and the file
-    connSock.close()
+    dataSock.close()
     fileObj.close()
+
+def sendCommand(commandString, connSock):
+    # send command
+    commandString = str(len(commandString)) + " " + commandString   #prepend size of command string
+    bytes_sent = 0
+    while bytes_sent < len(commandString):
+        bytes_sent += connSock.send(commandString.encode('ascii'))
+
+
 
 def main(argv):
 
@@ -74,8 +93,7 @@ def main(argv):
         print("USAGE python " + argv[0] + " <FILE NAME>")
 
     while True:
-        command = input("ftp> ")
-        command = command.split()   #splits string into list of words
+
 
         # Server address
         serverAddr = argv[1]
@@ -83,11 +101,27 @@ def main(argv):
         # Server port
         serverPort = int(argv[2])
 
+        # Create a TCP socket
+        connSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Connect to the server
+        connSock.connect((serverAddr, serverPort))
+
+        commandString = input("ftp> ")
+        command = commandString.split()   #splits string into list of words
+
+
 
         if(command[0].lower() == "get"):
             pass    #pass is a placeholder for the eventual function get() function that will be called
         elif(command[0].lower() == "put"):
-            put(serverAddr,serverPort, command[1])
+            dataSock = getEphemeralPort()
+
+            commandString = commandString + " " + str(dataSock.getsockname()[1])
+
+            dataSock.listen(1)
+            sendCommand(commandString, connSock)
+            dataSock.accept()
+            put(dataSock, command[1])
         elif(command[0].lower() == "ls"):
             pass
         elif(command[0].lower() == "quit"):
@@ -95,10 +129,6 @@ def main(argv):
             sys.exit(0)
         else:
             print("Invalid command")
-
-
-
-
 
 
 

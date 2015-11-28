@@ -10,7 +10,6 @@ import socket
 # @return - the bytes received
 # *************************************************
 def recvAll(sock, numBytes):
-
 	# The buffer
 	recvBuff = ""
 
@@ -27,81 +26,87 @@ def recvAll(sock, numBytes):
 		if not tmpBuff:
 			break
 
+
+
 		# Add the received bytes to the buffer
 		recvBuff += tmpBuff
-
 	return recvBuff
 
-#from ephemeral.py, not entirely sure how to use it yet
-def getEphemeralPort():
-    # Create a socket
-    welcomeSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # Bind the socket to port 0
-    welcomeSocket.bind(('',0))
+def put(fileName, dataSock):
 
-    # Retreive the ephemeral port number
-    print("I chose ephemeral port: ", welcomeSocket.getsockname()[1])
 
-    return welcomeSocket.getsockname()[1]
+	# The buffer to all data received from the
+	# the client.
+	fileData = ""
+	# The temporary buffer to store the received
+	# data.
+	recvBuff = ""
+	# The size of the incoming file
+	fileSize = 0
+	# The buffer containing the file size
+	fileSizeBuff = ""
+	# Receive the first 10 bytes indicating the
+	# size of the file
+	fileSizeBuff = recvAll(dataSock, 10)	#This is where it breaks for this file
+	# Get the file size
+	fileSize = int(fileSizeBuff)
+	print("The file size is ", fileSize)
+	# Get the file data
+	fileData = recvAll(dataSock, fileSize)
+	print("The file data is: ")
+	print(fileData)
+
+def getCommand(sock):
+	commandBytes = int(recvAll(sock,3))	#receive 1st 3 bytes (2-byte number and a space) indicating command size
+	return recvAll(sock, commandBytes)	#receive the remaining command
+
 
 def main(argv):
-    if len(argv) > 1:
+	if len(argv) > 1:
 #         from sendfileserv.py
-        # Accept connections forever
-        # The port on which to listen
-        listenPort = int(argv[1])
+		# Accept connections forever
+		# The port on which to listen
+		listenPort = int(argv[1])
 
-        # Create a welcome socket.
-        welcomeSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		# Create a welcome socket.
+		welcomeSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        # Bind the socket to the port
-        welcomeSock.bind(('', listenPort))
+		# Bind the socket to the port
+		welcomeSock.bind(('', listenPort))
 
-        # Start listening on the socket
-        welcomeSock.listen(1)
-        while True:
+		# Start listening on the socket
+		welcomeSock.listen(1)
+		while True:
 
-            print ("Waiting for connections...")
+			print ("Waiting for connections...")
 
-            # Accept connections
-            clientSock, addr = welcomeSock.accept()
+			# Accept connections
+			clientSock, addr = welcomeSock.accept()
 
-            print ("Accepted connection from client: ", addr)
-            print ("\n")
+			print ("Accepted connection from client: ", addr)
+			print ("\n")
+			clientCommand = getCommand(clientSock)
+			clientCommand = clientCommand.split()
 
-            # The buffer to all data received from the
-            # the client.
-            fileData = ""
+			if(clientCommand[0].lower() == "get"):
+				pass    #pass is a placeholder for the eventual function get() function that will be called
+			elif(clientCommand[0].lower() == "put"):
+				# connect to datasocket
+				dataSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+				dataSock.connect(("localhost", int(clientCommand[2])))	#addr[0] is the address the last socket connected to, clientCommand[2] is the ephemeral port sent by client
+				dataSock.listen(1)
+				put(clientCommand[1], dataSock)
+			elif(clientCommand[0].lower() == "ls"):
+				pass
+			elif(clientCommand[0].lower() == "quit"):
+				#function for sending quit goes here
+				sys.exit(0)
+			# put(clientSock)
 
-            # The temporary buffer to store the received
-            # data.
-            recvBuff = ""
-
-            # The size of the incoming file
-            fileSize = 0
-
-            # The buffer containing the file size
-            fileSizeBuff = ""
-
-            # Receive the first 10 bytes indicating the
-            # size of the file
-            fileSizeBuff = recvAll(clientSock, 10)
-
-            # Get the file size
-            fileSize = int(fileSizeBuff)
-
-            print ("The file size is ", fileSize)
-
-            # Get the file data
-            fileData = recvAll(clientSock, fileSize)
-
-            print ("The file data is: ")
-            print (fileData)
-
-            # Close our side
-            clientSock.close()
+			# Close our side
+			clientSock.close()
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+	main(sys.argv)
