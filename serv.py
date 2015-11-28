@@ -94,8 +94,7 @@ def main(argv):
 			elif(clientCommand[0].lower() == "put"):
 				# connect to datasocket
 				dataSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-				dataSock.connect(("localhost", int(clientCommand[2])))	#addr[0] is the address the last socket connected to, clientCommand[2] is the ephemeral port sent by client
-				dataSock.listen(1)
+				dataSock.connect((addr[0], int(clientCommand[2])))	#addr[0] is the address the last socket connected to, clientCommand[2] is the ephemeral port sent by client
 				put(clientCommand[1], dataSock)
 			elif(clientCommand[0].lower() == "ls"):
 				pass
