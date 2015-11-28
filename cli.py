@@ -77,6 +77,18 @@ def put(dataSock, fileName):
     dataSock.close()
     fileObj.close()
 
+def lsCommand(tempSock):
+    bytes_sent = 0
+    #While loop that modifies bytes sent
+
+    #Send request to server for list of
+    #Files in the folder
+
+    #Print list
+
+    #Close
+
+
 def sendCommand(commandString, connSock):
     # send command
     commandString = str(len(commandString)) + " " + commandString   #prepend size of command string
@@ -123,9 +135,14 @@ def main(argv):
             dataSock, addr = welcomeSock.accept()
             put(dataSock, command[1])
         elif(command[0].lower() == "ls"):
-            pass
+            tempSocket = getEphemeralPort()
+            lsCommand(tempSocket)
+
+
         elif(command[0].lower() == "quit"):
-            #function for sending quit goes here
+            #Send message to server saying to shut down
+            #Wait for response saying it is shutting down
+            #Shut down
             sys.exit(0)
         else:
             print("Invalid command")
