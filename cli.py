@@ -2,6 +2,35 @@ __author__ = 'BrendonH'
 
 import sys
 import socket
+# ************************************************
+# Receives the specified number of bytes
+# from the specified socket
+# @param sock - the socket from which to receive
+# @param numBytes - the number of bytes to receive
+# @return - the bytes received
+# *************************************************
+def recvAll(sock, numBytes):
+    # The buffer
+    recvBuff = ""
+        
+        # The temporary buffer
+        tmpBuff = ""
+        
+        # Keep receiving till all is received
+        while len(recvBuff) < numBytes:
+            
+            # Attempt to receive bytes
+            tmpBuff =  sock.recv(numBytes).decode('ascii')  #had to add.decode for it to work
+                
+                # The other side has closed the socket
+                if not tmpBuff:
+                    break
+                
+                
+                
+                # Add the received bytes to the buffer
+                recvBuff += tmpBuff
+        return recvBuff
 
 #from ephemeral.py, not entirely sure how to use it yet
 def getEphemeralPort():
@@ -77,6 +106,28 @@ def put(dataSock, fileName):
     dataSock.close()
     fileObj.close()
 
+def get(fileName, dataSock):
+    fileData = ""
+    recvBuff = ""
+    fileSize = 0
+    fileSizeBuff = ""
+    fileSizeBuff = recvAll(dataSock, 10)
+    fileSize = int(fileSizeBuff)
+    print("The file data is: ")
+    print(fileData)
+
+def lsCommand(tempSock):
+    bytes_sent = 0
+    #While loop that modifies bytes sent
+
+    #Send request to server for list of
+    #Files in the folder
+
+    #Print list
+
+    #Close
+
+
 def sendCommand(commandString, connSock):
     # send command
     commandString = str(len(commandString)) + " " + commandString   #prepend size of command string
@@ -123,9 +174,14 @@ def main(argv):
             dataSock, addr = welcomeSock.accept()
             put(dataSock, command[1])
         elif(command[0].lower() == "ls"):
-            pass
+            tempSocket = getEphemeralPort()
+            lsCommand(tempSocket)
+
+
         elif(command[0].lower() == "quit"):
-            #function for sending quit goes here
+            #Send message to server saying to shut down
+            #Wait for response saying it is shutting down
+            #Shut down
             sys.exit(0)
         else:
             print("Invalid command")
