@@ -64,7 +64,7 @@ def put(dataSock, fileName):
 
             # Send the data!
             while len(fileData) > numSent:
-                numSent += dataSock.send(fileData[numSent:].encode('ascii'))    #this is where it breaks right now
+                numSent += dataSock.send(fileData.encode('ascii'))    #this is where it breaks right now
 
         # The file has been read. We are done
         else:
@@ -114,13 +114,13 @@ def main(argv):
         if(command[0].lower() == "get"):
             pass    #pass is a placeholder for the eventual function get() function that will be called
         elif(command[0].lower() == "put"):
-            dataSock = getEphemeralPort()
+            welcomeSock = getEphemeralPort()
 
-            commandString = commandString + " " + str(dataSock.getsockname()[1])
+            commandString = commandString + " " + str(welcomeSock.getsockname()[1])
 
-            dataSock.listen(1)
+            welcomeSock.listen(1)
             sendCommand(commandString, connSock)
-            dataSock.accept()
+            dataSock, addr = welcomeSock.accept()
             put(dataSock, command[1])
         elif(command[0].lower() == "ls"):
             pass
