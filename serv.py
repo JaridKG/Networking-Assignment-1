@@ -57,6 +57,30 @@ def put(fileName, dataSock):
 	print("The file data is: ")
 	print(fileData)
 
+def get(fileName, dataSock):
+    fileObj = open(fileName, "r")
+    fileData = None:
+    while True:
+        fileData = fileObj.read(65536)
+        if fileData:
+            dataSizeStr = str(len(fileData))
+            while len(dataSizeStr) < 10:
+                dataSizeStr = "0" + dataSizeStr
+            fileData = dataSizeStr + fileData
+            numSent = 0
+            while len(fileData) > numSent:
+                numSent += dataSock.send(fileData.encode('ascii'))
+        else:
+            break
+    print("Sent", numSent, " bytes.")
+    dataSock.close()
+    fileObj.close()
+
+def lsCommand(temp_socket):
+    #Send list of all files to client
+    #Through the socket
+
+
 def getCommand(sock):
 	commandBytes = int(recvAll(sock,3))	#receive 1st 3 bytes (2-byte number and a space) indicating command size
 	return recvAll(sock, commandBytes)	#receive the remaining command
@@ -90,16 +114,19 @@ def main(argv):
 			clientCommand = clientCommand.split()
 
 			if(clientCommand[0].lower() == "get"):
-				pass    #pass is a placeholder for the eventual function get() function that will be called
+                #call get function
 			elif(clientCommand[0].lower() == "put"):
 				# connect to datasocket
 				dataSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 				dataSock.connect((addr[0], int(clientCommand[2])))	#addr[0] is the address the last socket connected to, clientCommand[2] is the ephemeral port sent by client
 				put(clientCommand[1], dataSock)
 			elif(clientCommand[0].lower() == "ls"):
-				pass
+                #Create new socket
+                #lsCommand(new socket)
 			elif(clientCommand[0].lower() == "quit"):
-				#function for sending quit goes here
+                #Send message back to client saying shutting down
+                #Shut down
+                
 				sys.exit(0)
 			# put(clientSock)
 
