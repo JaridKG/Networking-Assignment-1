@@ -57,6 +57,11 @@ def put(fileName, dataSock):
 	print("The file data is: ")
 	print(fileData)
 
+def lsCommand(temp_socket):
+    #Send list of all files to client
+    #Through the socket
+
+
 def getCommand(sock):
 	commandBytes = int(recvAll(sock,3))	#receive 1st 3 bytes (2-byte number and a space) indicating command size
 	return recvAll(sock, commandBytes)	#receive the remaining command
@@ -97,9 +102,12 @@ def main(argv):
 				dataSock.connect((addr[0], int(clientCommand[2])))	#addr[0] is the address the last socket connected to, clientCommand[2] is the ephemeral port sent by client
 				put(clientCommand[1], dataSock)
 			elif(clientCommand[0].lower() == "ls"):
-				pass
+                #Create new socket
+                #lsCommand(new socket)
 			elif(clientCommand[0].lower() == "quit"):
-				#function for sending quit goes here
+                #Send message back to client saying shutting down
+                #Shut down
+                
 				sys.exit(0)
 			# put(clientSock)
 
