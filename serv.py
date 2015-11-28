@@ -56,6 +56,29 @@ def put(fileName, dataSock):
 	fileData = recvAll(dataSock, fileSize)
 	print("The file data is: ")
 	print(fileData)
+	
+def get(fileName, dataSock):
+    fileObj = open(fileName, "r")
+    fileData = None:
+    while True:
+        fileData = fileObj.read(65536)
+        if fileData:
+            dataSizeStr = str(len(fileData))
+            while len(dataSizeStr) < 10:
+                dataSizeStr = "0" + dataSizeStr
+            fileData = dataSizeStr + fileData
+            numSent = 0
+            while len(fileData) > numSent:
+                numSent += dataSock.send(fileData.encode('ascii'))
+        else:
+            break
+    print("Sent", numSent, " bytes.")
+    dataSock.close()
+    fileObj.close()
+ 
+ def lsCommand(temp_socket):
+    #Send list of all files to client
+    #Through the socket
 
 def getCommand(sock):
 	commandBytes = int(recvAll(sock,3))	#receive 1st 3 bytes (2-byte number and a space) indicating command size
